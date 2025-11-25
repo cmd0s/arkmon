@@ -71,7 +71,7 @@ async function testWriteSmall(
 
     const walletClient = createWalletClient({
       chain,
-      transport: http(),
+      transport: http(undefined, { timeout: 120000 }), // 120s timeout
       account,
     });
 
@@ -124,7 +124,7 @@ async function testWriteLarge(
 
     const walletClient = createWalletClient({
       chain,
-      transport: http(),
+      transport: http(undefined, { timeout: 120000 }), // 120s timeout
       account,
     });
 
