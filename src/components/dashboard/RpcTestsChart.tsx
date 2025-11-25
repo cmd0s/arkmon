@@ -2,16 +2,23 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Cell,
 } from "recharts";
+import { useMemo } from "react";
+
+interface RpcTestData {
+  timestamp: Date;
+  operation: string;
+  durationMs: number;
+  success: number;
+}
 
 interface RpcAverage {
   operation: string;
@@ -21,12 +28,13 @@ interface RpcAverage {
 }
 
 interface RpcTestsChartProps {
+  tests: Record<string, RpcTestData[]>;
   averages: RpcAverage[];
 }
 
 const operationLabels: Record<string, string> = {
-  write_small: "Write Small (<1KB)",
-  write_large: "Write Large (~100KB)",
+  write_small: "Write Small",
+  write_large: "Write Large",
   read: "Read",
 };
 
@@ -36,14 +44,39 @@ const operationColors: Record<string, string> = {
   read: "#f59e0b",
 };
 
-export function RpcTestsChart({ averages }: RpcTestsChartProps) {
-  const chartData = averages.map((avg) => ({
-    name: operationLabels[avg.operation] || avg.operation,
-    operation: avg.operation,
-    duration: avg.avgDurationMs,
-    successRate: avg.successRate,
-    count: avg.count,
-  }));
+export function RpcTestsChart({ tests, averages }: RpcTestsChartProps) {
+  const chartData = useMemo(() => {
+    // Get all unique timestamps and create chart data points
+    const timeMap = new Map<number, Record<string, number | null>>();
+
+    for (const [operation, testList] of Object.entries(tests)) {
+      for (const test of testList) {
+        const time = new Date(test.timestamp).getTime();
+        if (!timeMap.has(time)) {
+          timeMap.set(time, {});
+        }
+        // Only include successful tests in the chart (failed tests would skew the data)
+        if (test.success) {
+          timeMap.get(time)![operation] = test.durationMs;
+        }
+      }
+    }
+
+    // Convert to array and sort by time
+    return Array.from(timeMap.entries())
+      .map(([time, values]) => ({
+        time,
+        timeLabel: new Date(time).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        ...values,
+      }))
+      .sort((a, b) => a.time - b.time)
+      .slice(-60); // Last 60 data points
+  }, [tests]);
+
+  const operations = Object.keys(tests);
 
   if (chartData.length === 0) {
     return (
@@ -64,27 +97,25 @@ export function RpcTestsChart({ averages }: RpcTestsChartProps) {
     <Card className="bg-zinc-900/50 border-zinc-800">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-zinc-400">
-          RPC Performance (avg ms)
+          RPC Response Time (ms)
         </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
             <XAxis
-              type="number"
+              dataKey="timeLabel"
               stroke="#71717a"
               fontSize={10}
               tickLine={false}
             />
             <YAxis
-              type="category"
-              dataKey="name"
               stroke="#71717a"
-              fontSize={11}
+              fontSize={10}
               tickLine={false}
               axisLine={false}
-              width={120}
+              tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}s` : `${value}ms`}
             />
             <Tooltip
               contentStyle={{
@@ -93,36 +124,47 @@ export function RpcTestsChart({ averages }: RpcTestsChartProps) {
                 borderRadius: "8px",
               }}
               labelStyle={{ color: "#a1a1aa" }}
-              formatter={(value: number, name: string) => {
-                if (name === "duration") return [`${value}ms`, "Avg Duration"];
-                return [value, name];
-              }}
+              itemStyle={{ color: "#fafafa" }}
+              formatter={(value: number) => [`${value}ms`, ""]}
             />
-            <Bar
-              dataKey="duration"
-              radius={[0, 4, 4, 0]}
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={operationColors[entry.operation] || "#71717a"}
-                />
-              ))}
-            </Bar>
-          </BarChart>
+            <Legend
+              wrapperStyle={{ fontSize: "12px" }}
+              formatter={(value) => operationLabels[value] || value}
+            />
+            {operations.map((operation) => (
+              <Line
+                key={operation}
+                type="monotone"
+                dataKey={operation}
+                name={operation}
+                stroke={operationColors[operation] || "#71717a"}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+                connectNulls
+              />
+            ))}
+          </LineChart>
         </ResponsiveContainer>
 
+        {/* Success rate stats below the chart */}
         <div className="mt-4 grid grid-cols-3 gap-4">
-          {chartData.map((item) => (
+          {averages.map((item) => (
             <div
               key={item.operation}
               className="text-center p-3 rounded-lg bg-zinc-800/50"
             >
-              <div className="text-xs text-zinc-500 mb-1">{item.name}</div>
+              <div className="text-xs text-zinc-500 mb-1">
+                {operationLabels[item.operation] || item.operation}
+              </div>
               <div className="text-lg font-semibold text-white">
                 {item.successRate.toFixed(1)}%
               </div>
-              <div className="text-xs text-zinc-500">success rate</div>
+              <div className="text-xs text-zinc-500">
+                avg {item.avgDurationMs >= 1000
+                  ? `${(item.avgDurationMs / 1000).toFixed(1)}s`
+                  : `${item.avgDurationMs}ms`}
+              </div>
             </div>
           ))}
         </div>

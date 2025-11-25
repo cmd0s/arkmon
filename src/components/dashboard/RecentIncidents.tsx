@@ -13,6 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle } from "lucide-react";
 import { SERVICES } from "@/config/testnets";
 
+const RPC_OPERATIONS: Record<string, string> = {
+  rpc_write_small: "RPC Write Small",
+  rpc_write_large: "RPC Write Large",
+  rpc_read: "RPC Read",
+};
+
 interface Incident {
   timestamp: string;
   service: string;
@@ -77,7 +83,8 @@ export function RecentIncidents({ incidents }: RecentIncidentsProps) {
                   })}
                 </TableCell>
                 <TableCell className="text-zinc-300">
-                  {SERVICES.find((s) => s.id === incident.service)?.name ||
+                  {RPC_OPERATIONS[incident.service] ||
+                    SERVICES.find((s) => s.id === incident.service)?.name ||
                     incident.service}
                 </TableCell>
                 <TableCell>

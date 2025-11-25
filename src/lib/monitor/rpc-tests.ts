@@ -1,8 +1,7 @@
-import { createPublicClient, createWalletClient, http } from "@arkiv-network/sdk";
+import { createPublicClient, createWalletClient, http, defineChain } from "@arkiv-network/sdk";
 import { privateKeyToAccount } from "@arkiv-network/sdk/accounts";
 import { mendoza } from "@arkiv-network/sdk/chains";
 import { jsonToPayload, ExpirationTime } from "@arkiv-network/sdk/utils";
-import { defineChain } from "viem";
 import { type TestnetConfig } from "@/config/testnets";
 
 export interface RpcTestResult {
@@ -22,22 +21,17 @@ function getChain(config: TestnetConfig) {
     return mendoza;
   }
 
-  // For other testnets, define chain dynamically
+  // For temporal networks like Rosario, define chain using SDK's defineChain
   return defineChain({
     id: config.chainId,
     name: config.name,
-    network: config.id,
-    nativeCurrency: {
-      name: "Ethereum",
-      symbol: "ETH",
-      decimals: 18,
-    },
+    nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
     rpcUrls: {
       default: {
         http: [config.rpcUrl],
+        webSocket: [config.wsUrl],
       },
     },
-    testnet: true,
   });
 }
 

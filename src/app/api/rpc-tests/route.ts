@@ -21,6 +21,18 @@ export async function GET(request: NextRequest) {
       grouped[test.operation].push(test);
     }
 
+    // Get failed tests as incidents
+    const incidents = tests
+      .filter((test) => !test.success)
+      .map((test) => ({
+        timestamp: new Date(test.timestamp).toISOString(),
+        service: `rpc_${test.operation}`,
+        status: "failed",
+        errorMessage: test.errorMessage,
+      }))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 50); // Last 50 incidents
+
     return NextResponse.json({
       testnet,
       hours,
@@ -31,6 +43,7 @@ export async function GET(request: NextRequest) {
         successRate: parseFloat((avg.successRate || 0).toFixed(2)),
         count: avg.count,
       })),
+      incidents,
       count: tests.length,
     });
   } catch (error) {

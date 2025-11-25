@@ -31,7 +31,10 @@ export function Dashboard() {
   const services = servicesData?.services || [];
   const metrics = metricsData?.metrics || {};
   const rpcAverages = rpcData?.averages || [];
-  const incidents = services
+  const rpcIncidents = rpcData?.incidents || [];
+
+  // Combine service outages with RPC test failures
+  const serviceIncidents = services
     .filter((s: { status: string }) => s.status === "down")
     .map((s: { id: string; errorMessage: string | null }) => ({
       timestamp: new Date().toISOString(),
@@ -39,6 +42,10 @@ export function Dashboard() {
       status: "down",
       errorMessage: s.errorMessage,
     }));
+
+  const incidents = [...serviceIncidents, ...rpcIncidents]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 20);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -129,13 +136,17 @@ export function Dashboard() {
           )}
         </section>
 
-        {/* RPC Performance & Incidents */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* RPC Performance */}
+        <section className="mb-8">
           {rpcLoading ? (
             <Skeleton className="h-[400px] bg-zinc-800" />
           ) : (
-            <RpcTestsChart averages={rpcAverages} />
+            <RpcTestsChart tests={rpcData?.tests || {}} averages={rpcAverages} />
           )}
+        </section>
+
+        {/* Recent Incidents */}
+        <section>
           <RecentIncidents incidents={incidents} />
         </section>
       </main>
