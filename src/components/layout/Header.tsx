@@ -1,7 +1,7 @@
 "use client";
 
 import { Activity, Wallet, ExternalLink, Clock } from "lucide-react";
-import { useWallet } from "@/lib/hooks/useApi";
+import { useWallet, useTestnets } from "@/lib/hooks/useApi";
 import { useState, useEffect } from "react";
 
 const REFRESH_INTERVAL_SECONDS = 180; // 3 minutes
@@ -11,13 +11,9 @@ interface HeaderProps {
   lastUpdate: string | null;
 }
 
-const EXPLORER_URLS: Record<string, string> = {
-  mendoza: "https://explorer.mendoza.hoodi.arkiv.network",
-  rosario: "https://explorer.rosario.hoodi.arkiv.network",
-};
-
 export function Header({ testnet, lastUpdate }: HeaderProps) {
   const { data: walletData } = useWallet();
+  const { data: testnetsData } = useTestnets();
   const [countdown, setCountdown] = useState<number>(REFRESH_INTERVAL_SECONDS);
 
   useEffect(() => {
@@ -36,7 +32,9 @@ export function Header({ testnet, lastUpdate }: HeaderProps) {
     return () => clearInterval(interval);
   }, [lastUpdate]);
 
-  const explorerUrl = EXPLORER_URLS[testnet] || EXPLORER_URLS.rosario;
+  // Get explorer URL from testnets config
+  const testnetConfig = testnetsData?.testnets?.find((t: { id: string }) => t.id === testnet);
+  const explorerUrl = testnetConfig?.explorerUrl || `https://explorer.${testnet}.hoodi.arkiv.network`;
   const addressUrl = walletData?.address
     ? `${explorerUrl}/address/${walletData.address}`
     : null;

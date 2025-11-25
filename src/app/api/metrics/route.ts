@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetricsHistory } from "@/lib/db/queries";
+import { getDefaultTestnetId } from "@/config/testnets";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const testnet = searchParams.get("testnet") || "rosario";
+  const testnet = searchParams.get("testnet") || getDefaultTestnetId();
   const service = searchParams.get("service");
   const hours = parseInt(searchParams.get("hours") || "24", 10);
 

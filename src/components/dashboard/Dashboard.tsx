@@ -14,9 +14,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export function Dashboard() {
   const [timeRange, setTimeRange] = useState("6");
 
-  // Get enabled testnet from API
+  // Get enabled testnet from API (fallback handled by API)
   const { data: testnetsData } = useTestnets();
-  const testnet = testnetsData?.enabled?.[0] || "rosario";
+  const testnet = testnetsData?.enabled?.[0] || testnetsData?.default || "mendoza";
 
   const { data: servicesData, isLoading: servicesLoading } = useServices(testnet);
   const { data: metricsData, isLoading: metricsLoading } = useMetrics(

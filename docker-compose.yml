@@ -9,7 +9,7 @@ services:
       - NODE_ENV=production
       - DATABASE_PATH=/app/data/arkmon.db
       - MONITOR_INTERVAL_MS=60000
-      - ENABLED_TESTNETS=rosario
+      - ENABLED_TESTNETS=${ENABLED_TESTNETS:-mendoza}
       - MONITOR_WALLET_ADDRESS=${MONITOR_WALLET_ADDRESS}
       - MONITOR_PRIVATE_KEY=${MONITOR_PRIVATE_KEY}
     volumes:

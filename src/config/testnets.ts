@@ -52,3 +52,13 @@ export function getEnabledTestnets(): TestnetConfig[] {
     .map((id) => TESTNETS[id.trim()])
     .filter((t): t is TestnetConfig => t !== undefined);
 }
+
+export function getDefaultTestnetId(): string {
+  const enabledTestnets = getEnabledTestnets();
+  return enabledTestnets[0]?.id || "mendoza";
+}
+
+export function getDefaultTestnet(): TestnetConfig | undefined {
+  const enabledTestnets = getEnabledTestnets();
+  return enabledTestnets[0];
+}

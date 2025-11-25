@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
+import { getDefaultTestnetId, getTestnet } from "@/config/testnets";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const walletAddress = process.env.MONITOR_WALLET_ADDRESS;
-  const enabledTestnets = process.env.ENABLED_TESTNETS?.split(",") || ["rosario"];
-  const testnet = enabledTestnets[0]?.trim() || "rosario";
+  const testnet = getDefaultTestnetId();
+  const testnetConfig = getTestnet(testnet);
 
   if (!walletAddress) {
     return NextResponse.json({
@@ -17,13 +18,7 @@ export async function GET() {
     });
   }
 
-  // Get RPC URL for the testnet
-  const rpcUrls: Record<string, string> = {
-    mendoza: "https://mendoza.hoodi.arkiv.network/rpc",
-    rosario: "https://rosario.hoodi.arkiv.network/rpc",
-  };
-
-  const rpcUrl = rpcUrls[testnet];
+  const rpcUrl = testnetConfig?.rpcUrl;
   if (!rpcUrl) {
     return NextResponse.json({
       address: walletAddress,
