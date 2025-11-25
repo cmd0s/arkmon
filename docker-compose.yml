@@ -1,0 +1,26 @@
+services:
+  arkmon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=/app/data/arkmon.db
+      - MONITOR_INTERVAL_MS=60000
+      - ENABLED_TESTNETS=rosario
+      - MONITOR_WALLET_ADDRESS=${MONITOR_WALLET_ADDRESS}
+      - MONITOR_PRIVATE_KEY=${MONITOR_PRIVATE_KEY}
+    volumes:
+      - arkmon_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/testnets"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  arkmon_data:

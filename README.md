@@ -1,36 +1,165 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ArkMon - Arkiv Network Monitor
 
-## Getting Started
+Real-time monitoring dashboard for Arkiv Web3 database network.
 
-First, run the development server:
+## Features
+
+- **Service Monitoring**: HTTP RPC, WebSocket RPC, Faucet, Bridge, Block Explorer
+- **RPC Performance Tests**: Write small (<1KB), write large (~100KB), read operations
+- **Historical Data**: SQLite database for storing metrics history
+- **Multi-testnet Support**: Parameterized for mendoza, rosario, and other testnets
+- **Modern Dark UI**: Built with Next.js, Tailwind CSS, shadcn/ui, and Recharts
+- **Real-time Updates**: Automatic refresh with SWR
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 22+
+- npm
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy the example environment file and configure:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+Edit `.env` with your settings:
 
-To learn more about Next.js, take a look at the following resources:
+```env
+# Wallet for RPC tests
+MONITOR_WALLET_ADDRESS=0xYourWalletAddress
+MONITOR_PRIVATE_KEY=0xYourPrivateKey
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Database
+DATABASE_PATH=./data/arkmon.db
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Monitoring
+MONITOR_INTERVAL_MS=60000
+ENABLED_TESTNETS=mendoza
 
-## Deploy on Vercel
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run the dashboard and monitoring worker together:
+
+```bash
+npm run dev:all
+```
+
+Or run them separately:
+
+```bash
+# Dashboard only
+npm run dev
+
+# Worker only (in another terminal)
+npm run worker
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
+
+### Production Build
+
+```bash
+npm run build
+npm run start
+```
+
+## Docker Deployment (Dokploy)
+
+### Build and run with Docker Compose
+
+```bash
+docker compose up -d
+```
+
+### Environment Variables for Docker
+
+Set these in your Dokploy environment:
+
+- `MONITOR_WALLET_ADDRESS` - Wallet address for RPC tests
+- `MONITOR_PRIVATE_KEY` - Private key for signing transactions
+- `ENABLED_TESTNETS` - Comma-separated list of testnets (default: mendoza)
+- `MONITOR_INTERVAL_MS` - Monitoring interval in ms (default: 60000)
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Next.js App                          │
+├─────────────────────────────────────────────────────────────┤
+│  Frontend (React)           │  API Routes                   │
+│  ├── Dashboard page         │  ├── GET /api/metrics         │
+│  ├── Charts (Recharts)      │  ├── GET /api/services/status │
+│  ├── Status indicators      │  └── GET /api/testnets        │
+│  └── Real-time updates      │                               │
+├─────────────────────────────────────────────────────────────┤
+│                    Background Worker                        │
+│  ├── Runs every 1 minute                                    │
+│  ├── Tests all services                                     │
+│  ├── Writes metrics to SQLite                               │
+│  └── Logs results                                           │
+├─────────────────────────────────────────────────────────────┤
+│                    SQLite Database                          │
+│  ├── metrics (timestamp, testnet, service, latency, status) │
+│  └── rpc_tests (timestamp, testnet, operation, duration)    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## API Endpoints
+
+- `GET /api/testnets` - List of available testnets
+- `GET /api/services?testnet=mendoza` - Current service status
+- `GET /api/metrics?testnet=mendoza&hours=24` - Historical metrics
+- `GET /api/rpc-tests?testnet=mendoza&hours=24` - RPC test history
+
+## Adding New Testnets
+
+Edit `src/config/testnets.ts`:
+
+```typescript
+export const TESTNETS = {
+  mendoza: {
+    id: "mendoza",
+    name: "Mendoza Testnet",
+    chainId: 60138453056,
+    rpcUrl: "https://mendoza.hoodi.arkiv.network/rpc",
+    wsUrl: "wss://mendoza.hoodi.arkiv.network/rpc/ws",
+    faucetUrl: "https://mendoza.hoodi.arkiv.network/faucet/",
+    bridgeUrl: "https://mendoza.hoodi.arkiv.network/bridgette/",
+    explorerUrl: "https://explorer.mendoza.hoodi.arkiv.network",
+  },
+  // Add new testnet here
+  rosario: {
+    id: "rosario",
+    // ...
+  },
+};
+```
+
+Then update `ENABLED_TESTNETS` in your `.env` file.
+
+## Tech Stack
+
+- **Framework**: Next.js 14+ (App Router)
+- **UI**: Tailwind CSS + shadcn/ui
+- **Charts**: Recharts
+- **Database**: SQLite + Drizzle ORM
+- **Real-time**: SWR
+- **Deployment**: Docker
+
+## License
+
+MIT
