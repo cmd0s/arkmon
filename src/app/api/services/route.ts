@@ -30,10 +30,15 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Get actual last check timestamp from database
+    const lastCheckTimestamp = latestMetrics.length > 0
+      ? Math.max(...latestMetrics.map(m => new Date(m.timestamp).getTime()))
+      : null;
+
     return NextResponse.json({
       testnet,
       services: serviceStatus,
-      lastUpdate: new Date().toISOString(),
+      lastUpdate: lastCheckTimestamp ? new Date(lastCheckTimestamp).toISOString() : null,
     });
   } catch (error) {
     console.error("Error fetching service status:", error);
