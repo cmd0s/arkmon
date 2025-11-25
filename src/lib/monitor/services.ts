@@ -157,6 +157,7 @@ export async function runHealthChecks(
   config: TestnetConfig
 ): Promise<HealthCheckResult[]> {
   const checks = await Promise.all([
+    checkHttpEndpoint(config.portalUrl, "portal"),
     checkRpc(config),
     checkWs(config),
     checkHttpEndpoint(config.faucetUrl, "faucet"),

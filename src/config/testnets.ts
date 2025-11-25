@@ -4,6 +4,7 @@ export interface TestnetConfig {
   chainId: number;
   rpcUrl: string;
   wsUrl: string;
+  portalUrl: string;
   faucetUrl: string;
   bridgeUrl: string;
   explorerUrl: string;
@@ -16,6 +17,7 @@ export const TESTNETS: Record<string, TestnetConfig> = {
     chainId: 60138453056,
     rpcUrl: "https://mendoza.hoodi.arkiv.network/rpc",
     wsUrl: "wss://mendoza.hoodi.arkiv.network/rpc/ws",
+    portalUrl: "https://mendoza.hoodi.arkiv.network",
     faucetUrl: "https://mendoza.hoodi.arkiv.network/faucet/",
     bridgeUrl: "https://mendoza.hoodi.arkiv.network/bridgette/",
     explorerUrl: "https://explorer.mendoza.hoodi.arkiv.network",
@@ -26,6 +28,7 @@ export const TESTNETS: Record<string, TestnetConfig> = {
     chainId: 60138453057,
     rpcUrl: "https://rosario.hoodi.arkiv.network/rpc",
     wsUrl: "wss://rosario.hoodi.arkiv.network/rpc/ws",
+    portalUrl: "https://rosario.hoodi.arkiv.network",
     faucetUrl: "https://rosario.hoodi.arkiv.network/faucet/",
     bridgeUrl: "https://rosario.hoodi.arkiv.network/bridgette/",
     explorerUrl: "https://explorer.rosario.hoodi.arkiv.network",
@@ -33,6 +36,7 @@ export const TESTNETS: Record<string, TestnetConfig> = {
 };
 
 export const SERVICES = [
+  { id: "portal", name: "Portal", description: "Network portal" },
   { id: "rpc", name: "HTTP RPC", description: "JSON-RPC endpoint" },
   { id: "ws", name: "WebSocket RPC", description: "WebSocket endpoint" },
   { id: "faucet", name: "Faucet", description: "Test token faucet" },

@@ -10,7 +10,8 @@ import {
   Search,
   Clock,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  LayoutDashboard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ interface ServiceCardProps {
 }
 
 const serviceIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  portal: LayoutDashboard,
   rpc: Globe,
   ws: Radio,
   faucet: Droplets,

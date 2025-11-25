@@ -40,6 +40,8 @@ export function Dashboard() {
     if (!testnetConfig) return undefined;
 
     switch (serviceId) {
+      case "portal":
+        return testnetConfig.portalUrl;
       case "rpc":
       case "ws":
         return `https://${testnet}.hoodi.arkiv.network`;
@@ -111,13 +113,13 @@ export function Dashboard() {
           </div>
 
           {servicesLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              {[...Array(5)].map((_, i) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              {[...Array(6)].map((_, i) => (
                 <Skeleton key={i} className="h-[130px] bg-zinc-800 rounded-lg" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {services.map((service: {
                 id: string;
                 name: string;
