@@ -9,7 +9,8 @@ import {
   ArrowLeftRight,
   Search,
   Clock,
-  TrendingUp
+  TrendingUp,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ interface ServiceCardProps {
   latencyMs: number | null;
   uptime24h: number | null;
   avgLatency24h: number | null;
+  serviceUrl?: string;
 }
 
 const serviceIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -39,15 +41,12 @@ export function ServiceCard({
   latencyMs,
   uptime24h,
   avgLatency24h,
+  serviceUrl,
 }: ServiceCardProps) {
   const Icon = serviceIcons[id] || Globe;
 
-  return (
-    <Card className={cn(
-      "bg-zinc-900/50 border-zinc-800 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/80",
-      status === "down" && "border-red-900/50",
-      status === "degraded" && "border-yellow-900/50"
-    )}>
+  const cardContent = (
+    <>
       <CardContent className="p-4">
         {/* Header row - icon, name, badge */}
         <div className="flex items-center justify-between mb-1">
@@ -62,6 +61,9 @@ export function ServiceCard({
               <Icon className="h-4 w-4" />
             </div>
             <span className="text-sm font-medium text-white">{name}</span>
+            {serviceUrl && (
+              <ExternalLink className="h-3 w-3 text-zinc-500" />
+            )}
           </div>
           <StatusBadge status={status} />
         </div>
@@ -109,6 +111,29 @@ export function ServiceCard({
           </div>
         </div>
       </CardContent>
+    </>
+  );
+
+  const cardClassName = cn(
+    "bg-zinc-900/50 border-zinc-800 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/80",
+    status === "down" && "border-red-900/50",
+    status === "degraded" && "border-yellow-900/50",
+    serviceUrl && "cursor-pointer"
+  );
+
+  if (serviceUrl) {
+    return (
+      <a href={serviceUrl} target="_blank" rel="noopener noreferrer" className="block">
+        <Card className={cardClassName}>
+          {cardContent}
+        </Card>
+      </a>
+    );
+  }
+
+  return (
+    <Card className={cardClassName}>
+      {cardContent}
     </Card>
   );
 }

@@ -33,6 +33,27 @@ export function Dashboard() {
   const rpcAverages = rpcData?.averages || [];
   const rpcIncidents = rpcData?.incidents || [];
 
+  // Get testnet config for service URLs
+  const testnetConfig = testnetsData?.testnets?.find((t: { id: string }) => t.id === testnet);
+
+  const getServiceUrl = (serviceId: string): string | undefined => {
+    if (!testnetConfig) return undefined;
+
+    switch (serviceId) {
+      case "rpc":
+      case "ws":
+        return `https://${testnet}.hoodi.arkiv.network`;
+      case "faucet":
+        return testnetConfig.faucetUrl;
+      case "bridge":
+        return testnetConfig.bridgeUrl;
+      case "explorer":
+        return testnetConfig.explorerUrl;
+      default:
+        return undefined;
+    }
+  };
+
   // Combine service outages with RPC test failures
   const serviceIncidents = services
     .filter((s: { status: string }) => s.status === "down")
@@ -115,6 +136,7 @@ export function Dashboard() {
                   latencyMs={service.latencyMs}
                   uptime24h={service.uptime24h}
                   avgLatency24h={service.avgLatency24h}
+                  serviceUrl={getServiceUrl(service.id)}
                 />
               ))}
             </div>
