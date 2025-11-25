@@ -154,7 +154,18 @@ export function Dashboard() {
       {/* Footer */}
       <footer className="border-t border-zinc-800 mt-12 py-6">
         <div className="container mx-auto px-4 text-center text-zinc-500 text-sm">
-          ArkMon - Arkiv Network Monitoring Dashboard
+          <div>ArkMon - Arkiv Network Monitoring Dashboard</div>
+          <div className="mt-1 text-zinc-600 text-xs">
+            Powered by{" "}
+            <a
+              href="https://www.f12lab.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-500 hover:text-zinc-400 transition-colors"
+            >
+              F12 Lab
+            </a>
+          </div>
         </div>
       </footer>
     </div>
