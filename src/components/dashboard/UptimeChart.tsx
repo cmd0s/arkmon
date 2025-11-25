@@ -24,8 +24,9 @@ export function UptimeChart({ data, hours = 24 }: UptimeChartProps) {
       const up = metrics.filter((m) => m.status === "up").length;
       const uptime = total > 0 ? ((up / total) * 100).toFixed(2) : null;
 
-      // Create timeline data (last 24 slots)
-      const slots = 48; // 30-minute slots for 24 hours
+      // Create timeline data - adjust slots based on time range
+      // With 3-minute monitoring interval: 1h=20 points, 6h=120 points, 24h=480 points
+      const slots = hours <= 1 ? 20 : hours <= 6 ? 40 : 48;
       const slotDuration = (hours * 60 * 60 * 1000) / slots;
       const now = Date.now();
 
@@ -51,6 +52,7 @@ export function UptimeChart({ data, hours = 24 }: UptimeChartProps) {
         name: service.name,
         uptime,
         timeline,
+        slots,
       };
     });
   }, [data, hours]);
@@ -97,7 +99,7 @@ export function UptimeChart({ data, hours = 24 }: UptimeChartProps) {
                     status === "degraded" && "bg-yellow-500/80 hover:bg-yellow-500",
                     status === "unknown" && "bg-zinc-800 hover:bg-zinc-700"
                   )}
-                  title={`${hours - (i * hours) / 48}h ago: ${status}`}
+                  title={`${(hours - (i * hours) / service.slots).toFixed(1)}h ago: ${status}`}
                 />
               ))}
             </div>
