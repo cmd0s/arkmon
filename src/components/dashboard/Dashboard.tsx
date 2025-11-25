@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function Dashboard() {
-  const [timeRange, setTimeRange] = useState("1");
+  const [timeRange, setTimeRange] = useState("6");
 
   // Get enabled testnet from API
   const { data: testnetsData } = useTestnets();
