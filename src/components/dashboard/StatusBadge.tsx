@@ -10,7 +10,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, showPulse = true }: StatusBadgeProps) {
   const statusConfig = {
     up: {
-      label: "Operational",
+      label: "Online",
       bgColor: "bg-emerald-500/20",
       textColor: "text-emerald-400",
       dotColor: "bg-emerald-500",
