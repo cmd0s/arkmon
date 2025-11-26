@@ -4,12 +4,13 @@ Real-time monitoring dashboard for Arkiv Web3 database network.
 
 ## Features
 
-- **Service Monitoring**: HTTP RPC, WebSocket RPC, Faucet, Bridge, Block Explorer
+- **Service Monitoring**: Portal, HTTP RPC, WebSocket RPC, Faucet, Bridge, Block Explorer
 - **RPC Performance Tests**: Write small (<1KB), write large (~100KB), read operations
 - **Historical Data**: SQLite database for storing metrics history
 - **Multi-testnet Support**: Parameterized for mendoza, rosario, and other testnets
 - **Modern Dark UI**: Built with Next.js, Tailwind CSS, shadcn/ui, and Recharts
 - **Real-time Updates**: Automatic refresh with SWR
+- **Clickable Service Cards**: Direct links to monitored services
 
 ## Quick Start
 
@@ -45,9 +46,6 @@ DATABASE_PATH=./data/arkmon.db
 # Monitoring
 MONITOR_INTERVAL_MS=60000
 ENABLED_TESTNETS=mendoza
-
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ### Development
@@ -77,7 +75,7 @@ npm run build
 npm run start
 ```
 
-## Docker Deployment (Dokploy)
+## Docker Deployment
 
 ### Build and run with Docker Compose
 
@@ -87,12 +85,26 @@ docker compose up -d
 
 ### Environment Variables for Docker
 
-Set these in your Dokploy environment:
+Set these in your deployment platform (Coolify, Dokploy, etc.):
 
 - `MONITOR_WALLET_ADDRESS` - Wallet address for RPC tests
 - `MONITOR_PRIVATE_KEY` - Private key for signing transactions
 - `ENABLED_TESTNETS` - Comma-separated list of testnets (default: mendoza)
 - `MONITOR_INTERVAL_MS` - Monitoring interval in ms (default: 60000)
+
+### Volume Mount for Data Persistence
+
+The SQLite database is stored in `/app/data`. To persist data:
+
+**Docker Compose** (already configured):
+```yaml
+volumes:
+  - arkmon_data:/app/data
+```
+
+**Coolify**: Use "Volume Mount" with:
+- Volume Name: `arkmon-data`
+- Mount Path: `/app/data`
 
 ## Architecture
 
@@ -102,13 +114,13 @@ Set these in your Dokploy environment:
 ├─────────────────────────────────────────────────────────────┤
 │  Frontend (React)           │  API Routes                   │
 │  ├── Dashboard page         │  ├── GET /api/metrics         │
-│  ├── Charts (Recharts)      │  ├── GET /api/services/status │
-│  ├── Status indicators      │  └── GET /api/testnets        │
-│  └── Real-time updates      │                               │
+│  ├── Service cards          │  ├── GET /api/services        │
+│  ├── Charts (Recharts)      │  ├── GET /api/rpc-tests       │
+│  └── Real-time updates      │  └── GET /api/testnets        │
 ├─────────────────────────────────────────────────────────────┤
 │                    Background Worker                        │
-│  ├── Runs every 1 minute                                    │
-│  ├── Tests all services                                     │
+│  ├── Runs at configurable interval                          │
+│  ├── Tests all services (Portal, RPC, WS, Faucet, etc.)     │
 │  ├── Writes metrics to SQLite                               │
 │  └── Logs results                                           │
 ├─────────────────────────────────────────────────────────────┤
@@ -117,6 +129,17 @@ Set these in your Dokploy environment:
 │  └── rpc_tests (timestamp, testnet, operation, duration)    │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## Monitored Services
+
+| Service | Description |
+|---------|-------------|
+| Portal | Main network portal page |
+| HTTP RPC | JSON-RPC endpoint |
+| WebSocket RPC | WebSocket endpoint |
+| Faucet | Test token faucet |
+| Bridge | Cross-chain bridge |
+| Block Explorer | Blockchain explorer |
 
 ## API Endpoints
 
@@ -137,15 +160,12 @@ export const TESTNETS = {
     chainId: 60138453056,
     rpcUrl: "https://mendoza.hoodi.arkiv.network/rpc",
     wsUrl: "wss://mendoza.hoodi.arkiv.network/rpc/ws",
+    portalUrl: "https://mendoza.hoodi.arkiv.network",
     faucetUrl: "https://mendoza.hoodi.arkiv.network/faucet/",
     bridgeUrl: "https://mendoza.hoodi.arkiv.network/bridgette/",
     explorerUrl: "https://explorer.mendoza.hoodi.arkiv.network",
   },
   // Add new testnet here
-  rosario: {
-    id: "rosario",
-    // ...
-  },
 };
 ```
 
@@ -153,7 +173,7 @@ Then update `ENABLED_TESTNETS` in your `.env` file.
 
 ## Tech Stack
 
-- **Framework**: Next.js 14+ (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **UI**: Tailwind CSS + shadcn/ui
 - **Charts**: Recharts
 - **Database**: SQLite + Drizzle ORM
