@@ -60,6 +60,25 @@ async function runMonitoringCycle() {
             errorMessage: result.errorMessage,
           });
         }
+
+        // If RPC tests fail, update RPC service status
+        const failedTests = rpcResults.filter((r) => !r.success);
+        if (failedTests.length > 0) {
+          const rpcStatus = failedTests.length === rpcResults.length ? "down" : "degraded";
+          const errorMessages = failedTests
+            .map((r) => r.errorMessage)
+            .filter(Boolean)
+            .join("; ");
+
+          await insertMetric({
+            timestamp,
+            testnet: testnet.id,
+            service: "rpc",
+            status: rpcStatus,
+            latencyMs: null,
+            errorMessage: errorMessages || "RPC operation tests failed",
+          });
+        }
       } else {
         console.log("[Monitor] MONITOR_PRIVATE_KEY not set, skipping RPC tests");
       }

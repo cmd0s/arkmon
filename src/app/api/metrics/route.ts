@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetricsHistory } from "@/lib/db/queries";
+import { getMetricsHistory, getRpcTestHistory } from "@/lib/db/queries";
 import { getDefaultTestnetId } from "@/config/testnets";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,33 @@ export async function GET(request: NextRequest) {
         grouped[metric.service] = [];
       }
       grouped[metric.service].push(metric);
+    }
+
+    // For RPC service, also include failed RPC tests as "down" status
+    if (!service || service === "rpc") {
+      const rpcTestHistory = getRpcTestHistory(testnet, hours);
+      const failedRpcTests = rpcTestHistory.filter((t) => !t.success);
+
+      if (!grouped["rpc"]) {
+        grouped["rpc"] = [];
+      }
+
+      for (const test of failedRpcTests) {
+        grouped["rpc"].push({
+          id: -test.id, // Negative ID to distinguish from real metrics
+          timestamp: test.timestamp,
+          testnet: test.testnet,
+          service: "rpc",
+          status: "down",
+          latencyMs: null,
+          errorMessage: test.errorMessage,
+        });
+      }
+
+      // Sort by timestamp descending after adding RPC test failures
+      grouped["rpc"].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
     }
 
     return NextResponse.json({
