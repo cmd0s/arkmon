@@ -37,8 +37,8 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Install wget for healthcheck
-RUN apk add --no-cache wget
+# Install wget for healthcheck and su-exec for entrypoint permission fix
+RUN apk add --no-cache wget su-exec
 
 COPY --from=builder /app/public ./public
 
@@ -62,16 +62,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
 RUN mkdir -p data && chown nextjs:nodejs data
 VOLUME /app/data
 
-USER nextjs
-
 EXPOSE 3000
 
 # Healthcheck for Dokploy
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget -q --spider http://localhost:3000/api/testnets || exit 1
 
-# Start both the Next.js server and the monitoring worker
-# Server runs in background, worker in foreground
-# If worker crashes → container exits → Dokploy restarts it
-# If server crashes → healthcheck fails → Dokploy restarts it
-CMD ["sh", "-c", "node server.js & node node_modules/.bin/tsx worker.ts"]
+# Start as root, fix data dir permissions, then drop to nextjs user
+CMD ["sh", "-c", "chown -R nextjs:nodejs /app/data && exec su-exec nextjs:nodejs sh -c 'node server.js & node node_modules/.bin/tsx worker.ts'"]
