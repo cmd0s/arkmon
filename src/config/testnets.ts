@@ -36,7 +36,7 @@ export const TESTNETS: Record<string, TestnetConfig> = {
   kaolin: {
     id: "kaolin",
     name: "Kaolin Testnet",
-    chainId: 60138453058,
+    chainId: 60138453025,
     rpcUrl: "https://kaolin.hoodi.arkiv.network/rpc",
     wsUrl: "wss://kaolin.hoodi.arkiv.network/rpc/ws",
     portalUrl: "https://kaolin.hoodi.arkiv.network",
