@@ -27,7 +27,7 @@ function getChain(config: TestnetConfig) {
     return mendoza;
   }
 
-  // For temporal networks like Rosario, define chain using SDK's defineChain
+  // For other networks, define chain using SDK's defineChain
   return defineChain({
     id: config.chainId,
     name: config.name,

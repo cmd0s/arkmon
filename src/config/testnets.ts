@@ -33,6 +33,17 @@ export const TESTNETS: Record<string, TestnetConfig> = {
     bridgeUrl: "https://rosario.hoodi.arkiv.network/bridgette/",
     explorerUrl: "https://explorer.rosario.hoodi.arkiv.network",
   },
+  kaolin: {
+    id: "kaolin",
+    name: "Kaolin Testnet",
+    chainId: 60138453058,
+    rpcUrl: "https://kaolin.hoodi.arkiv.network/rpc",
+    wsUrl: "wss://kaolin.hoodi.arkiv.network/rpc/ws",
+    portalUrl: "https://kaolin.hoodi.arkiv.network",
+    faucetUrl: "https://kaolin.hoodi.arkiv.network/faucet/",
+    bridgeUrl: "https://kaolin.hoodi.arkiv.network/bridgette/",
+    explorerUrl: "https://explorer.kaolin.hoodi.arkiv.network",
+  },
 };
 
 export const SERVICES = [
