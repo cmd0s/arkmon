@@ -57,8 +57,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
 
-# Create data directory with correct permissions
+# Create data directory with correct permissions and declare as volume
+# VOLUME ensures the directory is always writable, even with read-only root filesystem
 RUN mkdir -p data && chown nextjs:nodejs data
+VOLUME /app/data
 
 USER nextjs
 
