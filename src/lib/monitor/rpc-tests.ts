@@ -4,6 +4,12 @@ import { mendoza } from "@arkiv-network/sdk/chains";
 import { jsonToPayload, ExpirationTime } from "@arkiv-network/sdk/utils";
 import { type TestnetConfig } from "@/config/testnets";
 
+// Known existing entities for read tests (fallback when writes fail)
+const KNOWN_ENTITIES: Record<string, string> = {
+  mendoza: "0x70e91f42a5a0fbb91ccf1a2856cba8960348e2b43ca3efdd427159535b64d84a",
+  rosario: "0xa2ed108de48e0b5500a006737a6bc750b4c8463dd66e367ef991a8720e80f81f",
+};
+
 export interface RpcTestResult {
   operation: "write_small" | "write_large" | "read";
   payloadSize: number;
@@ -65,7 +71,7 @@ async function testWriteSmall(
 
     const walletClient = createWalletClient({
       chain,
-      transport: http(undefined, { timeout: 120000 }), // 120s timeout
+      transport: http(config.rpcUrl, { timeout: 120000 }), // 120s timeout
       account,
     });
 
@@ -118,7 +124,7 @@ async function testWriteLarge(
 
     const walletClient = createWalletClient({
       chain,
-      transport: http(undefined, { timeout: 120000 }), // 120s timeout
+      transport: http(config.rpcUrl, { timeout: 120000 }), // 120s timeout
       account,
     });
 
@@ -181,7 +187,7 @@ async function testRead(
 
     const publicClient = createPublicClient({
       chain,
-      transport: http(),
+      transport: http(config.rpcUrl, { timeout: 60000 }), // 60s timeout
     });
 
     const entity = await publicClient.getEntity(entityKey as `0x${string}`);
@@ -219,7 +225,7 @@ async function checkBalance(config: TestnetConfig, privateKey: string): Promise<
 
   const publicClient = createPublicClient({
     chain,
-    transport: http(),
+    transport: http(config.rpcUrl, { timeout: 30000 }),
   });
 
   return await publicClient.getBalance({ address: account.address });
@@ -236,7 +242,11 @@ export async function runRpcTests(
   // Check balance first
   let hasBalance = false;
   try {
+    const account = privateKeyToAccount(privateKey as `0x${string}`);
+    console.log(`[RPC Tests] Checking balance for wallet: ${account.address}`);
+    console.log(`[RPC Tests] Using RPC URL: ${config.rpcUrl}`);
     const balance = await checkBalance(config, privateKey);
+    console.log(`[RPC Tests] Balance: ${balance.toString()} wei`);
     hasBalance = balance > BigInt(0);
     if (!hasBalance) {
       console.log(`[RPC Tests] Wallet has no funds - write tests will be skipped`);
@@ -291,8 +301,8 @@ export async function runRpcTests(
     await delay(5000); // shorter delay for read
   }
 
-  // Test read (use entity from successful write, or skip if no entity)
-  const readKey = smallWrite.entityKey || largeWrite.entityKey;
+  // Test read - prefer freshly written entity, fallback to known entity
+  const readKey = smallWrite.entityKey || largeWrite.entityKey || KNOWN_ENTITIES[config.id];
   const readResult = await testRead(config, readKey);
   results.push(readResult);
 
